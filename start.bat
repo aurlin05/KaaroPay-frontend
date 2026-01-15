@@ -1,0 +1,3 @@
+@echo off
+echo Demarrage de KaaroPay en mode developpement...
+npm run dev

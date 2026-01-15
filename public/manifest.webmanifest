@@ -1,0 +1,12 @@
+{
+  "name": "KaaroPay - Orchestrateur de Paiements PI-SPI",
+  "short_name": "KaaroPay",
+  "description": "Application d'orchestration de paiements interopérables pour les PME en Afrique de l'Ouest",
+  "version": "1.0.0",
+  "author": "KaaroPay Team",
+  "homepage": "https://kaaropay.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaaropay/frontend"
+  }
+}

@@ -12,7 +12,7 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
-  login: async (email: string, password: string) => {
+  login: async (email: string, _password: string) => {
     const mockUser: User = {
       id: '1',
       name: 'Jean Dupont',

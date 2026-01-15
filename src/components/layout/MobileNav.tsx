@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { X, LayoutDashboard, ArrowLeftRight, Send, Settings, Wallet, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/Logo'
 
 interface MobileNavProps {
   open: boolean
@@ -8,7 +9,7 @@ interface MobileNavProps {
 }
 
 const navItems = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Transactions', href: '/transactions', icon: ArrowLeftRight },
   { name: 'Paiements', href: '/paiements', icon: Send },
   { name: 'Comptes', href: '/comptes', icon: Wallet },
@@ -31,9 +32,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
       <div className="fixed inset-y-0 left-0 w-72 bg-white shadow-xl animate-slide-in-right">
         <div className="flex items-center justify-between p-6 border-b border-border/40">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
-              <span className="text-lg font-bold text-white">K</span>
-            </div>
+            <Logo size="md" />
             <span className="text-lg font-bold">KaaroPay</span>
           </div>
           <button

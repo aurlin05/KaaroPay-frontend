@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAuthStore } from '@/stores/authStore'
 import { Mail, Lock, ArrowRight, Zap, Shield, Globe } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 
 const features = [
   { icon: Zap, title: 'Paiements instantanés', desc: 'Via le réseau PI-SPI de la BCEAO' },
@@ -23,7 +24,7 @@ export function Login() {
     setIsLoading(true)
     await login(email, password)
     setIsLoading(false)
-    navigate('/')
+    navigate('/dashboard')
   }
 
   return (
@@ -33,9 +34,7 @@ export function Login() {
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 mb-12">
-            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-soft">
-              <span className="text-xl font-bold text-white">K</span>
-            </div>
+            <Logo size="lg" />
             <span className="text-2xl font-bold text-foreground">KaaroPay</span>
           </Link>
 

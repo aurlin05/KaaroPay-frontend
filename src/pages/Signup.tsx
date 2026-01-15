@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAuthStore } from '@/stores/authStore'
 import { Mail, Lock, User, Phone, Building2, ArrowRight, Check } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 
 const benefits = [
   'Essai gratuit de 14 jours',
@@ -47,7 +48,7 @@ export function Signup() {
     setIsLoading(true)
     await login(formData.email, formData.password)
     setIsLoading(false)
-    navigate('/')
+    navigate('/dashboard')
   }
 
   return (
@@ -57,9 +58,7 @@ export function Signup() {
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 mb-12">
-            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-soft">
-              <span className="text-xl font-bold text-white">K</span>
-            </div>
+            <Logo size="lg" />
             <span className="text-2xl font-bold text-foreground">KaaroPay</span>
           </Link>
 

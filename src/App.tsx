@@ -8,6 +8,7 @@ import { Rapports } from '@/pages/Rapports'
 import { Settings } from '@/pages/Settings'
 import { Login } from '@/pages/Login'
 import { Signup } from '@/pages/Signup'
+import { Landing } from '@/pages/Landing'
 import { useAuthStore } from '@/stores/authStore'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 
@@ -21,14 +22,28 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
+  
+  return <>{children}</>
+}
+
 export function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* Public routes */}
+        <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+        
+        {/* Protected routes */}
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <MainLayout />
@@ -36,11 +51,56 @@ export function App() {
           }
         >
           <Route index element={<Dashboard />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="paiements" element={<Paiements />} />
-          <Route path="comptes" element={<Comptes />} />
-          <Route path="rapports" element={<Rapports />} />
-          <Route path="settings" element={<Settings />} />
+        </Route>
+        <Route
+          path="/transactions"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Transactions />} />
+        </Route>
+        <Route
+          path="/paiements"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Paiements />} />
+        </Route>
+        <Route
+          path="/comptes"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Comptes />} />
+        </Route>
+        <Route
+          path="/rapports"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Rapports />} />
+        </Route>
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Settings />} />
         </Route>
       </Routes>
       <PWAInstallPrompt />

@@ -15,9 +15,10 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { useThemeStore } from '@/stores/themeStore'
 import { useNavigate } from 'react-router-dom'
+import { Logo } from '@/components/Logo'
 
 const mainNav = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Transactions', href: '/transactions', icon: ArrowLeftRight },
   { name: 'Paiements', href: '/paiements', icon: Send },
   { name: 'Comptes', href: '/comptes', icon: Wallet },
@@ -43,9 +44,7 @@ export function Sidebar() {
       <div className="flex grow flex-col overflow-y-auto bg-card border-r border-border/40 px-6 py-8">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-10">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-soft">
-            <span className="text-xl font-bold text-white">K</span>
-          </div>
+          <Logo size="lg" />
           <div>
             <h1 className="text-xl font-bold text-foreground">KaaroPay</h1>
             <p className="text-xs text-muted-foreground">Orchestrateur PI-SPI</p>

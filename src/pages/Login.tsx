@@ -29,7 +29,7 @@ export function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20">
+      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20 bg-background">
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 mb-12">

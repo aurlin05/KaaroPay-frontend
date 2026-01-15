@@ -24,12 +24,6 @@
     --input: 220 13% 91%;
     --ring: 160 84% 39%;
     --radius: 0.75rem;
-    
-    /* Custom colors */
-    --emerald: 160 84% 39%;
-    --wave: 199 89% 48%;
-    --orange: 25 95% 53%;
-    --momo: 45 93% 47%;
   }
 
   .dark {
@@ -47,7 +41,7 @@
     --muted-foreground: 217 10% 64%;
     --accent: 215 28% 17%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62% 30%;
+    --destructive: 0 62% 50%;
     --destructive-foreground: 210 40% 98%;
     --border: 215 28% 17%;
     --input: 215 28% 17%;
@@ -67,11 +61,7 @@
 
 @layer components {
   .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
-  }
-  
-  .dark .glass {
-    @apply bg-gray-900/70 border-gray-800/50;
+    @apply bg-card/70 backdrop-blur-xl border border-border/20 shadow-xl;
   }
 
   .gradient-primary {
@@ -79,11 +69,7 @@
   }
 
   .gradient-card {
-    @apply bg-gradient-to-br from-white to-gray-50/50;
-  }
-
-  .dark .gradient-card {
-    @apply bg-gradient-to-br from-gray-800 to-gray-900/50;
+    @apply bg-gradient-to-br from-card to-card/50;
   }
 }
 
@@ -93,7 +79,7 @@
   }
   
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-600;
   }
 
   .shadow-glow {

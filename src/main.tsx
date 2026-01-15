@@ -4,6 +4,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { App } from './App'
 import './index.css'
 
+// Initialize theme from localStorage
+const savedTheme = localStorage.getItem('kaaro-theme')
+if (savedTheme) {
+  const { state } = JSON.parse(savedTheme)
+  if (state?.theme === 'dark') {
+    document.documentElement.classList.add('dark')
+  }
+} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.documentElement.classList.add('dark')
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

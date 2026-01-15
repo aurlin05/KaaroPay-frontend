@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Modal } from '@/components/ui/Modal'
 import { 
   Wallet, 
   Plus, 
@@ -12,11 +14,15 @@ import {
   AlertCircle,
   TrendingUp,
   Eye,
-  EyeOff
+  EyeOff,
+  Trash2,
+  Edit,
+  ExternalLink
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { Dropdown, DropdownItem, DropdownDivider } from '@/components/ui/Dropdown'
 
-const accounts = [
+const initialAccounts = [
   { 
     id: '1', 
     name: 'Wave Business', 
@@ -61,17 +67,13 @@ const accounts = [
     lastSync: '1h',
     trend: '+5.2%'
   },
-  { 
-    id: '5', 
-    name: 'Ecobank Business', 
-    type: 'Compte Bancaire',
-    number: 'SN98 7654 3210 9876', 
-    balance: 3200000, 
-    color: 'bg-blue-500',
-    status: 'pending',
-    lastSync: '-',
-    trend: '-'
-  },
+]
+
+const accountTypes = [
+  { id: 'wave', name: 'Wave', color: 'bg-wave', icon: '💳' },
+  { id: 'orange', name: 'Orange Money', color: 'bg-orange', icon: '🟠' },
+  { id: 'momo', name: 'MTN MoMo', color: 'bg-momo', icon: '💛' },
+  { id: 'bank', name: 'Compte Bancaire', color: 'bg-emerald-500', icon: '🏦' },
 ]
 
 const recentActivity = [
@@ -83,10 +85,46 @@ const recentActivity = [
 
 export function Comptes() {
   const [showBalances, setShowBalances] = useState(true)
+  const [accounts, setAccounts] = useState(initialAccounts)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedAccount, setSelectedAccount] = useState<typeof accounts[0] | null>(null)
+  const [newAccount, setNewAccount] = useState({ type: '', number: '', name: '' })
   
   const totalBalance = accounts
     .filter(a => a.status === 'active')
     .reduce((sum, a) => sum + a.balance, 0)
+
+  const handleAddAccount = () => {
+    if (!newAccount.type || !newAccount.number) return
+    
+    const accountType = accountTypes.find(t => t.id === newAccount.type)
+    const newAcc = {
+      id: Date.now().toString(),
+      name: newAccount.name || accountType?.name || 'Nouveau compte',
+      type: accountType?.id === 'bank' ? 'Compte Bancaire' : 'Mobile Money',
+      number: newAccount.number,
+      balance: 0,
+      color: accountType?.color || 'bg-gray-500',
+      status: 'active' as const,
+      lastSync: 'À l\'instant',
+      trend: '0%'
+    }
+    
+    setAccounts([...accounts, newAcc])
+    setShowAddModal(false)
+    setNewAccount({ type: '', number: '', name: '' })
+  }
+
+  const handleDeleteAccount = (id: string) => {
+    setAccounts(accounts.filter(a => a.id !== id))
+    setShowDetailModal(false)
+  }
+
+  const openAccountDetail = (account: typeof accounts[0]) => {
+    setSelectedAccount(account)
+    setShowDetailModal(true)
+  }
 
   return (
     <div className="space-y-6">
@@ -96,7 +134,7 @@ export function Comptes() {
           <h1 className="text-2xl font-bold text-foreground">Comptes connectés</h1>
           <p className="text-muted-foreground">Gérez tous vos comptes de paiement</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowAddModal(true)}>
           <Plus className="h-4 w-4" />
           Ajouter un compte
         </Button>
@@ -143,7 +181,7 @@ export function Comptes() {
         {/* Accounts List */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Vos comptes</h2>
+            <h2 className="text-lg font-semibold">Vos comptes ({accounts.length})</h2>
             <button className="text-sm text-primary font-medium hover:underline">
               Synchroniser tout
             </button>
@@ -151,7 +189,11 @@ export function Comptes() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             {accounts.map((account) => (
-              <Card key={account.id} className={account.status === 'pending' ? 'opacity-70' : ''}>
+              <Card 
+                key={account.id} 
+                className={`cursor-pointer ${account.status === 'pending' ? 'opacity-70' : ''}`}
+                onClick={() => openAccountDetail(account)}
+              >
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -163,9 +205,30 @@ export function Comptes() {
                         <p className="text-xs text-muted-foreground">{account.type}</p>
                       </div>
                     </div>
-                    <button className="p-1.5 hover:bg-accent rounded-lg transition-colors">
-                      <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                    </button>
+                    <Dropdown
+                      trigger={
+                        <button 
+                          className="p-1.5 hover:bg-accent rounded-lg transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      }
+                    >
+                      <DropdownItem icon={<Eye className="h-4 w-4" />} onClick={() => openAccountDetail(account)}>
+                        Voir détails
+                      </DropdownItem>
+                      <DropdownItem icon={<Edit className="h-4 w-4" />}>
+                        Modifier
+                      </DropdownItem>
+                      <DropdownItem icon={<RefreshCw className="h-4 w-4" />}>
+                        Synchroniser
+                      </DropdownItem>
+                      <DropdownDivider />
+                      <DropdownItem icon={<Trash2 className="h-4 w-4" />} danger onClick={() => handleDeleteAccount(account.id)}>
+                        Supprimer
+                      </DropdownItem>
+                    </Dropdown>
                   </div>
 
                   <p className="text-2xl font-bold text-foreground mb-1">
@@ -196,7 +259,10 @@ export function Comptes() {
             ))}
 
             {/* Add Account Card */}
-            <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
+            <Card 
+              className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer"
+              onClick={() => setShowAddModal(true)}
+            >
               <CardContent className="p-5 flex flex-col items-center justify-center h-full min-h-[200px]">
                 <div className="h-12 w-12 rounded-xl bg-accent flex items-center justify-center mb-3">
                   <Plus className="h-6 w-6 text-muted-foreground" />
@@ -250,7 +316,7 @@ export function Comptes() {
             </CardHeader>
             <CardContent className="space-y-3">
               {accounts.filter(a => a.status === 'active').map((account) => {
-                const percentage = (account.balance / totalBalance) * 100
+                const percentage = totalBalance > 0 ? (account.balance / totalBalance) * 100 : 0
                 return (
                   <div key={account.id}>
                     <div className="flex justify-between text-sm mb-1">
@@ -270,6 +336,127 @@ export function Comptes() {
           </Card>
         </div>
       </div>
+
+      {/* Add Account Modal */}
+      <Modal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Ajouter un compte"
+        description="Connectez un nouveau compte de paiement"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Type de compte</label>
+            <div className="grid grid-cols-2 gap-3">
+              {accountTypes.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => setNewAccount({ ...newAccount, type: type.id })}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                    newAccount.type === type.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border/60 hover:border-primary/50'
+                  }`}
+                >
+                  <span className="text-2xl">{type.icon}</span>
+                  <span className="text-sm font-medium">{type.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Numéro de compte / Téléphone</label>
+            <Input
+              placeholder="Ex: 77 123 45 67"
+              value={newAccount.number}
+              onChange={(e) => setNewAccount({ ...newAccount, number: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Nom personnalisé (optionnel)</label>
+            <Input
+              placeholder="Ex: Mon compte principal"
+              value={newAccount.name}
+              onChange={(e) => setNewAccount({ ...newAccount, name: e.target.value })}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" className="flex-1" onClick={() => setShowAddModal(false)}>
+              Annuler
+            </Button>
+            <Button className="flex-1" onClick={handleAddAccount} disabled={!newAccount.type || !newAccount.number}>
+              Ajouter le compte
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Account Detail Modal */}
+      <Modal
+        open={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        title={selectedAccount?.name}
+        description={selectedAccount?.type}
+      >
+        {selectedAccount && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className={`h-16 w-16 rounded-2xl ${selectedAccount.color} flex items-center justify-center`}>
+                <Wallet className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold">{formatCurrency(selectedAccount.balance)}</p>
+                <p className="text-sm text-muted-foreground">{selectedAccount.number}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-accent/50">
+                <p className="text-xs text-muted-foreground">Statut</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <span className="text-sm font-medium">Actif</span>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-accent/50">
+                <p className="text-xs text-muted-foreground">Dernière sync</p>
+                <p className="text-sm font-medium mt-1">{selectedAccount.lastSync}</p>
+              </div>
+              <div className="p-4 rounded-xl bg-accent/50">
+                <p className="text-xs text-muted-foreground">Tendance</p>
+                <p className="text-sm font-medium text-emerald-600 mt-1">{selectedAccount.trend}</p>
+              </div>
+              <div className="p-4 rounded-xl bg-accent/50">
+                <p className="text-xs text-muted-foreground">Transactions</p>
+                <p className="text-sm font-medium mt-1">24 ce mois</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1">
+                <RefreshCw className="h-4 w-4" />
+                Synchroniser
+              </Button>
+              <Button variant="outline" className="flex-1">
+                <ExternalLink className="h-4 w-4" />
+                Voir transactions
+              </Button>
+            </div>
+
+            <Button 
+              variant="outline" 
+              className="w-full text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={() => handleDeleteAccount(selectedAccount.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+              Supprimer ce compte
+            </Button>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

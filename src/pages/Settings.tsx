@@ -12,9 +12,13 @@ import {
   Phone,
   Globe,
   ChevronRight,
-  Check
+  Check,
+  Moon,
+  Sun,
+  Palette
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
+import { useThemeStore } from '@/stores/themeStore'
 
 const plans = [
   { 
@@ -40,6 +44,7 @@ const plans = [
 
 export function Settings() {
   const { user } = useAuthStore()
+  const { theme, toggleTheme } = useThemeStore()
 
   return (
     <div className="space-y-6">
@@ -104,8 +109,8 @@ export function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-blue-600" />
+                <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-blue-500" />
                 </div>
                 <div>
                   <CardTitle>Entreprise</CardTitle>
@@ -135,8 +140,8 @@ export function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-amber-600" />
+                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-amber-500" />
                 </div>
                 <div>
                   <CardTitle>Sécurité</CardTitle>
@@ -150,7 +155,7 @@ export function Settings() {
                 { label: 'Authentification 2FA', desc: 'Activée via SMS', icon: Shield, active: true },
                 { label: 'Sessions actives', desc: '2 appareils connectés', icon: Globe },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between p-4 rounded-xl hover:bg-accent/50 transition-colors">
+                <div key={item.label} className="flex items-center justify-between p-4 rounded-xl hover:bg-accent/50 transition-colors cursor-pointer">
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-lg bg-accent flex items-center justify-center">
                       <item.icon className="h-4 w-4 text-muted-foreground" />
@@ -162,7 +167,7 @@ export function Settings() {
                   </div>
                   <div className="flex items-center gap-2">
                     {item.active && (
-                      <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
+                      <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-medium">
                         Actif
                       </span>
                     )}
@@ -176,12 +181,49 @@ export function Settings() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Appearance */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-pink-500/10 flex items-center justify-center">
+                  <Palette className="h-5 w-5 text-pink-500" />
+                </div>
+                <CardTitle>Apparence</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {theme === 'light' ? <Sun className="h-5 w-5 text-amber-500" /> : <Moon className="h-5 w-5 text-blue-400" />}
+                  <div>
+                    <p className="text-sm font-medium">Mode {theme === 'light' ? 'clair' : 'sombre'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {theme === 'light' ? 'Thème lumineux' : 'Thème sombre'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={toggleTheme}
+                  className={`relative w-14 h-8 rounded-full transition-colors ${
+                    theme === 'dark' ? 'bg-primary' : 'bg-accent'
+                  }`}
+                >
+                  <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform flex items-center justify-center ${
+                    theme === 'dark' ? 'translate-x-7' : 'translate-x-1'
+                  }`}>
+                    {theme === 'dark' ? <Moon className="h-3 w-3 text-primary" /> : <Sun className="h-3 w-3 text-amber-500" />}
+                  </div>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Notifications */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-violet-100 flex items-center justify-center">
-                  <Bell className="h-5 w-5 text-violet-600" />
+                <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                  <Bell className="h-5 w-5 text-violet-500" />
                 </div>
                 <CardTitle>Notifications</CardTitle>
               </div>
@@ -211,8 +253,8 @@ export function Settings() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-emerald-600" />
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                  <CreditCard className="h-5 w-5 text-emerald-500" />
                 </div>
                 <CardTitle>Abonnement</CardTitle>
               </div>

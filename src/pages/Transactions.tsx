@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { Modal } from '@/components/ui/Modal'
 import { 
   Search, 
   Filter, 
@@ -12,10 +13,14 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  XCircle
+  XCircle,
+  Copy,
+  ExternalLink,
+  FileText
 } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Transaction } from '@/types'
+import { Dropdown, DropdownItem } from '@/components/ui/Dropdown'
 
 const mockTransactions: Transaction[] = [
   {
@@ -114,6 +119,10 @@ const statusConfig: Record<string, { label: string; icon: React.ElementType; col
 export function Transactions() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'encaissement' | 'paiement'>('all')
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const filteredTransactions = mockTransactions.filter((t) => {
     const matchesSearch = 
@@ -127,6 +136,22 @@ export function Transactions() {
     return matchesSearch && matchesType
   })
 
+  const openTransactionDetail = (tx: Transaction) => {
+    setSelectedTransaction(tx)
+    setShowDetailModal(true)
+  }
+
+  const copyReference = (ref: string) => {
+    navigator.clipboard.writeText(ref)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleExport = () => {
+    setShowExportModal(false)
+    // Simulate download
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -135,7 +160,7 @@ export function Transactions() {
           <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
           <p className="text-muted-foreground">Historique de tous vos flux financiers</p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => setShowExportModal(true)}>
           <Download className="h-4 w-4" />
           Exporter
         </Button>
@@ -212,7 +237,11 @@ export function Transactions() {
                   const StatusIcon = status.icon
                   
                   return (
-                    <tr key={tx.id} className="hover:bg-accent/30 transition-colors">
+                    <tr 
+                      key={tx.id} 
+                      className="hover:bg-accent/30 transition-colors cursor-pointer"
+                      onClick={() => openTransactionDetail(tx)}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
@@ -253,9 +282,26 @@ export function Transactions() {
                         <p className="text-sm text-muted-foreground">{formatDate(tx.createdAt)}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <button className="p-2 hover:bg-accent rounded-lg transition-colors">
-                          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                        </button>
+                        <Dropdown
+                          trigger={
+                            <button 
+                              className="p-2 hover:bg-accent rounded-lg transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          }
+                        >
+                          <DropdownItem icon={<ExternalLink className="h-4 w-4" />} onClick={() => openTransactionDetail(tx)}>
+                            Voir détails
+                          </DropdownItem>
+                          <DropdownItem icon={<Copy className="h-4 w-4" />} onClick={() => copyReference(tx.reference)}>
+                            Copier référence
+                          </DropdownItem>
+                          <DropdownItem icon={<FileText className="h-4 w-4" />}>
+                            Télécharger reçu
+                          </DropdownItem>
+                        </Dropdown>
                       </td>
                     </tr>
                   )
@@ -276,6 +322,140 @@ export function Transactions() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Transaction Detail Modal */}
+      <Modal
+        open={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        title="Détails de la transaction"
+        description={selectedTransaction?.reference}
+      >
+        {selectedTransaction && (
+          <div className="space-y-6">
+            {/* Amount */}
+            <div className={`p-6 rounded-2xl ${
+              selectedTransaction.type === 'encaissement' 
+                ? 'bg-gradient-to-br from-emerald-50 to-emerald-100' 
+                : 'bg-gradient-to-br from-blue-50 to-blue-100'
+            }`}>
+              <p className="text-sm text-muted-foreground mb-1">
+                {selectedTransaction.type === 'encaissement' ? 'Montant reçu' : 'Montant envoyé'}
+              </p>
+              <p className={`text-3xl font-bold ${
+                selectedTransaction.type === 'encaissement' ? 'text-emerald-600' : 'text-blue-600'
+              }`}>
+                {selectedTransaction.type === 'encaissement' ? '+' : '-'}
+                {formatCurrency(selectedTransaction.amount)}
+              </p>
+            </div>
+
+            {/* Details */}
+            <div className="space-y-3">
+              <div className="flex justify-between py-3 border-b border-border/40">
+                <span className="text-sm text-muted-foreground">Référence</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{selectedTransaction.reference}</span>
+                  <button 
+                    onClick={() => copyReference(selectedTransaction.reference)}
+                    className="p-1 hover:bg-accent rounded transition-colors"
+                  >
+                    <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between py-3 border-b border-border/40">
+                <span className="text-sm text-muted-foreground">
+                  {selectedTransaction.type === 'encaissement' ? 'De' : 'Vers'}
+                </span>
+                <span className="text-sm font-medium">
+                  {selectedTransaction.sender || selectedTransaction.recipient}
+                </span>
+              </div>
+              <div className="flex justify-between py-3 border-b border-border/40">
+                <span className="text-sm text-muted-foreground">Méthode</span>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${methodLabels[selectedTransaction.method].color}`}>
+                  {methodLabels[selectedTransaction.method].label}
+                </span>
+              </div>
+              <div className="flex justify-between py-3 border-b border-border/40">
+                <span className="text-sm text-muted-foreground">Statut</span>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${statusConfig[selectedTransaction.status].color}`}>
+                  {React.createElement(statusConfig[selectedTransaction.status].icon, { className: "h-3.5 w-3.5" })}
+                  {statusConfig[selectedTransaction.status].label}
+                </span>
+              </div>
+              <div className="flex justify-between py-3 border-b border-border/40">
+                <span className="text-sm text-muted-foreground">Date</span>
+                <span className="text-sm font-medium">{formatDate(selectedTransaction.createdAt)}</span>
+              </div>
+              {selectedTransaction.completedAt && (
+                <div className="flex justify-between py-3 border-b border-border/40">
+                  <span className="text-sm text-muted-foreground">Complété le</span>
+                  <span className="text-sm font-medium">{formatDate(selectedTransaction.completedAt)}</span>
+                </div>
+              )}
+              <div className="flex justify-between py-3">
+                <span className="text-sm text-muted-foreground">Description</span>
+                <span className="text-sm font-medium">{selectedTransaction.description}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1">
+                <FileText className="h-4 w-4" />
+                Télécharger reçu
+              </Button>
+              <Button variant="outline" className="flex-1" onClick={() => copyReference(selectedTransaction.reference)}>
+                <Copy className="h-4 w-4" />
+                {copied ? 'Copié !' : 'Copier réf.'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Export Modal */}
+      <Modal
+        open={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title="Exporter les transactions"
+        description="Téléchargez l'historique de vos transactions"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Format</label>
+            <div className="grid grid-cols-3 gap-3">
+              {['PDF', 'Excel', 'CSV'].map((format) => (
+                <button
+                  key={format}
+                  className="p-3 rounded-xl border-2 border-border/60 hover:border-primary/50 transition-all text-sm font-medium"
+                >
+                  {format}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Période</label>
+            <div className="grid grid-cols-2 gap-3">
+              <Input type="date" />
+              <Input type="date" />
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" className="flex-1" onClick={() => setShowExportModal(false)}>
+              Annuler
+            </Button>
+            <Button className="flex-1" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+              Télécharger
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

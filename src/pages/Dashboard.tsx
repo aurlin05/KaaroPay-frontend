@@ -3,7 +3,6 @@ import {
   ArrowDownLeft, 
   ArrowUpRight, 
   Clock, 
-  CheckCircle2, 
   TrendingUp,
   TrendingDown,
   Wallet,
@@ -11,8 +10,9 @@ import {
   ArrowRight
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 
 const stats = [
   {
@@ -60,24 +60,24 @@ const chartData = [
 ]
 
 const recentTransactions = [
-  { id: '1', type: 'encaissement', amount: 125000, method: 'Wave', methodColor: 'wave', client: 'Boutique Awa', time: '2 min' },
-  { id: '2', type: 'paiement', amount: 75000, method: 'Orange Money', methodColor: 'orange', client: 'Fournisseur ABC', time: '15 min' },
-  { id: '3', type: 'encaissement', amount: 200000, method: 'Banque', methodColor: 'emerald', client: 'Client DEF', time: '1h' },
-  { id: '4', type: 'paiement', amount: 50000, method: 'MoMo', methodColor: 'momo', client: 'Prestataire XYZ', time: '2h' },
-  { id: '5', type: 'encaissement', amount: 350000, method: 'Wave', methodColor: 'wave', client: 'Restaurant Le Bon', time: '3h' },
+  { id: '1', type: 'encaissement', amount: 125000, method: 'Wave', client: 'Boutique Awa', time: '2 min' },
+  { id: '2', type: 'paiement', amount: 75000, method: 'Orange Money', client: 'Fournisseur ABC', time: '15 min' },
+  { id: '3', type: 'encaissement', amount: 200000, method: 'Banque', client: 'Client DEF', time: '1h' },
+  { id: '4', type: 'paiement', amount: 50000, method: 'MoMo', client: 'Prestataire XYZ', time: '2h' },
+  { id: '5', type: 'encaissement', amount: 350000, method: 'Wave', client: 'Restaurant Le Bon', time: '3h' },
 ]
 
 const connectedAccounts = [
-  { name: 'Wave Business', balance: 2450000, color: 'bg-wave', status: 'active' },
-  { name: 'Orange Money', balance: 1230000, color: 'bg-orange', status: 'active' },
-  { name: 'Compte Bancaire', balance: 540000, color: 'bg-emerald-500', status: 'active' },
+  { name: 'Wave Business', balance: 2450000, color: 'bg-wave' },
+  { name: 'Orange Money', balance: 1230000, color: 'bg-orange' },
+  { name: 'Compte Bancaire', balance: 540000, color: 'bg-emerald-500' },
 ]
 
 const colorClasses = {
-  emerald: { bg: 'bg-emerald-100', text: 'text-emerald-600', icon: 'bg-emerald-500' },
-  blue: { bg: 'bg-blue-100', text: 'text-blue-600', icon: 'bg-blue-500' },
-  amber: { bg: 'bg-amber-100', text: 'text-amber-600', icon: 'bg-amber-500' },
-  violet: { bg: 'bg-violet-100', text: 'text-violet-600', icon: 'bg-violet-500' },
+  emerald: { bg: 'bg-emerald-100', text: 'text-emerald-600' },
+  blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
+  amber: { bg: 'bg-amber-100', text: 'text-amber-600' },
+  violet: { bg: 'bg-violet-100', text: 'text-violet-600' },
 }
 
 export function Dashboard() {
@@ -116,7 +116,7 @@ export function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {animatedStats.map((stat, index) => {
+        {animatedStats.map((stat) => {
           const colors = colorClasses[stat.color as keyof typeof colorClasses]
           return (
             <Card key={stat.name} className="overflow-hidden">
@@ -146,9 +146,9 @@ export function Dashboard() {
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle>Activité de la semaine</CardTitle>
-            <button className="p-2 hover:bg-accent rounded-lg transition-colors">
+            <Link to="/rapports" className="p-2 hover:bg-accent rounded-lg transition-colors">
               <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-            </button>
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="flex gap-6 mb-4">
@@ -195,9 +195,9 @@ export function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle>Comptes connectés</CardTitle>
-            <button className="text-sm text-primary font-medium hover:underline">
+            <Link to="/comptes" className="text-sm text-primary font-medium hover:underline">
               Gérer
-            </button>
+            </Link>
           </CardHeader>
           <CardContent className="space-y-3">
             {connectedAccounts.map((account) => (
@@ -214,9 +214,12 @@ export function Dashboard() {
                 <p className="text-sm font-semibold">{formatCurrency(account.balance)}</p>
               </div>
             ))}
-            <button className="w-full py-2.5 text-sm font-medium text-primary hover:bg-primary/5 rounded-xl transition-colors">
+            <Link 
+              to="/comptes" 
+              className="block w-full py-2.5 text-sm font-medium text-primary hover:bg-primary/5 rounded-xl transition-colors text-center"
+            >
               + Ajouter un compte
-            </button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -225,14 +228,18 @@ export function Dashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle>Transactions récentes</CardTitle>
-          <button className="flex items-center gap-1 text-sm text-primary font-medium hover:underline">
+          <Link to="/transactions" className="flex items-center gap-1 text-sm text-primary font-medium hover:underline">
             Voir tout <ArrowRight className="h-4 w-4" />
-          </button>
+          </Link>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {recentTransactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-accent/50 transition-colors">
+              <Link 
+                key={tx.id} 
+                to="/transactions"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-accent/50 transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
                     tx.type === 'encaissement' ? 'bg-emerald-100' : 'bg-blue-100'
@@ -250,7 +257,7 @@ export function Dashboard() {
                 <p className={`text-sm font-semibold ${tx.type === 'encaissement' ? 'text-emerald-600' : 'text-foreground'}`}>
                   {tx.type === 'encaissement' ? '+' : '-'}{formatCurrency(tx.amount)}
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         </CardContent>

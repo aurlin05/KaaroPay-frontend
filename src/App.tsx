@@ -3,6 +3,7 @@ import { MainLayout } from '@/components/layout/MainLayout'
 import { Dashboard } from '@/pages/Dashboard'
 import { Transactions } from '@/pages/Transactions'
 import { Paiements } from '@/pages/Paiements'
+import { Comptes } from '@/pages/Comptes'
 import { Settings } from '@/pages/Settings'
 import { Login } from '@/pages/Login'
 import { Signup } from '@/pages/Signup'
@@ -36,6 +37,7 @@ export function App() {
           <Route index element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="paiements" element={<Paiements />} />
+          <Route path="comptes" element={<Comptes />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

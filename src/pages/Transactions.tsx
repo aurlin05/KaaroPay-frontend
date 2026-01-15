@@ -1,8 +1,19 @@
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { ArrowUpRight, Search, Filter } from 'lucide-react'
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  ArrowDownLeft, 
+  ArrowUpRight,
+  MoreHorizontal,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  XCircle
+} from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Transaction } from '@/types'
 
@@ -14,11 +25,11 @@ const mockTransactions: Transaction[] = [
     currency: 'XOF',
     status: 'completed',
     method: 'wave',
-    reference: 'REF-2026-001',
+    reference: 'KP-2026-00001',
     description: 'Paiement facture #1234',
     createdAt: new Date('2026-01-15T10:30:00'),
     completedAt: new Date('2026-01-15T10:30:15'),
-    sender: 'Client ABC',
+    sender: 'Boutique Awa',
   },
   {
     id: '2',
@@ -27,11 +38,11 @@ const mockTransactions: Transaction[] = [
     currency: 'XOF',
     status: 'completed',
     method: 'orange_money',
-    reference: 'REF-2026-002',
-    description: 'Paiement fournisseur XYZ',
+    reference: 'KP-2026-00002',
+    description: 'Paiement fournisseur',
     createdAt: new Date('2026-01-15T09:15:00'),
     completedAt: new Date('2026-01-15T09:15:10'),
-    recipient: 'Fournisseur XYZ',
+    recipient: 'Fournisseur ABC',
   },
   {
     id: '3',
@@ -40,8 +51,8 @@ const mockTransactions: Transaction[] = [
     currency: 'XOF',
     status: 'pending',
     method: 'bank',
-    reference: 'REF-2026-003',
-    description: 'Virement bancaire',
+    reference: 'KP-2026-00003',
+    description: 'Virement bancaire client',
     createdAt: new Date('2026-01-15T08:00:00'),
     sender: 'Client DEF',
   },
@@ -52,140 +63,216 @@ const mockTransactions: Transaction[] = [
     currency: 'XOF',
     status: 'completed',
     method: 'momo',
-    reference: 'REF-2026-004',
+    reference: 'KP-2026-00004',
     description: 'Paiement prestataire',
     createdAt: new Date('2026-01-14T16:45:00'),
     completedAt: new Date('2026-01-14T16:45:08'),
-    recipient: 'Prestataire ABC',
+    recipient: 'Prestataire XYZ',
+  },
+  {
+    id: '5',
+    type: 'encaissement',
+    amount: 350000,
+    currency: 'XOF',
+    status: 'completed',
+    method: 'wave',
+    reference: 'KP-2026-00005',
+    description: 'Commande #5678',
+    createdAt: new Date('2026-01-14T14:20:00'),
+    completedAt: new Date('2026-01-14T14:20:12'),
+    sender: 'Restaurant Le Bon',
+  },
+  {
+    id: '6',
+    type: 'paiement',
+    amount: 180000,
+    currency: 'XOF',
+    status: 'failed',
+    method: 'bank',
+    reference: 'KP-2026-00006',
+    description: 'Virement salaire',
+    createdAt: new Date('2026-01-14T11:00:00'),
+    recipient: 'Employé ABC',
   },
 ]
 
-const methodLabels: Record<string, string> = {
-  wave: 'Wave',
-  orange_money: 'Orange Money',
-  momo: 'MoMo',
-  bank: 'Banque',
-  other: 'Autre',
+const methodLabels: Record<string, { label: string; color: string }> = {
+  wave: { label: 'Wave', color: 'bg-wave/10 text-wave' },
+  orange_money: { label: 'Orange Money', color: 'bg-orange/10 text-orange' },
+  momo: { label: 'MoMo', color: 'bg-momo/10 text-amber-700' },
+  bank: { label: 'Banque', color: 'bg-emerald-100 text-emerald-700' },
+  other: { label: 'Autre', color: 'bg-gray-100 text-gray-700' },
 }
 
-const statusLabels: Record<string, string> = {
-  pending: 'En attente',
-  completed: 'Complété',
-  failed: 'Échoué',
-  cancelled: 'Annulé',
+const statusConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  pending: { label: 'En attente', icon: Clock, color: 'bg-amber-100 text-amber-700' },
+  completed: { label: 'Complété', icon: CheckCircle2, color: 'bg-emerald-100 text-emerald-700' },
+  failed: { label: 'Échoué', icon: XCircle, color: 'bg-red-100 text-red-700' },
+  cancelled: { label: 'Annulé', icon: XCircle, color: 'bg-gray-100 text-gray-700' },
 }
 
 export function Transactions() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [filterType, setFilterType] = useState<'all' | 'encaissement' | 'paiement'>('all')
 
-  const filteredTransactions = mockTransactions.filter(
-    (t) =>
+  const filteredTransactions = mockTransactions.filter((t) => {
+    const matchesSearch = 
       t.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+      t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (t.sender?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (t.recipient?.toLowerCase().includes(searchTerm.toLowerCase()))
+    
+    const matchesType = filterType === 'all' || t.type === filterType
+    
+    return matchesSearch && matchesType
+  })
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
-          <p className="text-muted-foreground">
-            Gérez et suivez toutes vos transactions
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+          <p className="text-muted-foreground">Historique de tous vos flux financiers</p>
         </div>
-        <Button>
-          <ArrowUpRight className="mr-2 h-4 w-4" />
-          Nouvelle transaction
+        <Button variant="outline">
+          <Download className="h-4 w-4" />
+          Exporter
         </Button>
       </div>
 
+      {/* Filters */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
               <Input
-                placeholder="Rechercher par référence ou description..."
-                className="pl-10"
+                placeholder="Rechercher par référence, description, client..."
+                icon={<Search className="h-4 w-4" />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" />
-              Filtres
-            </Button>
+            <div className="flex gap-2">
+              <div className="flex rounded-xl border border-border/60 p-1">
+                {(['all', 'encaissement', 'paiement'] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setFilterType(type)}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                      filterType === type
+                        ? 'bg-primary text-white'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {type === 'all' ? 'Tout' : type === 'encaissement' ? 'Encaissements' : 'Paiements'}
+                  </button>
+                ))}
+              </div>
+              <Button variant="outline" size="icon">
+                <Calendar className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
+        </CardContent>
+      </Card>
+
+      {/* Transactions List */}
+      <Card>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Référence
+                <tr className="border-b border-border/40">
+                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">
+                    Transaction
                   </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Type
-                  </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Description
-                  </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">
                     Méthode
                   </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">
                     Montant
                   </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">
                     Statut
                   </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                  <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-4">
                     Date
                   </th>
+                  <th className="px-6 py-4"></th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredTransactions.map((transaction) => (
-                  <tr key={transaction.id} className="border-b last:border-0">
-                    <td className="py-4 text-sm font-medium">{transaction.reference}</td>
-                    <td className="py-4 text-sm">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          transaction.type === 'encaissement'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}
-                      >
-                        {transaction.type === 'encaissement' ? 'Encaissement' : 'Paiement'}
-                      </span>
-                    </td>
-                    <td className="py-4 text-sm">{transaction.description}</td>
-                    <td className="py-4 text-sm">{methodLabels[transaction.method]}</td>
-                    <td className="py-4 text-sm font-semibold">
-                      {transaction.type === 'encaissement' ? '+' : '-'}
-                      {formatCurrency(transaction.amount)}
-                    </td>
-                    <td className="py-4 text-sm">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          transaction.status === 'completed'
-                            ? 'bg-green-100 text-green-800'
-                            : transaction.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {statusLabels[transaction.status]}
-                      </span>
-                    </td>
-                    <td className="py-4 text-sm text-muted-foreground">
-                      {formatDate(transaction.createdAt)}
-                    </td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-border/40">
+                {filteredTransactions.map((tx) => {
+                  const method = methodLabels[tx.method]
+                  const status = statusConfig[tx.status]
+                  const StatusIcon = status.icon
+                  
+                  return (
+                    <tr key={tx.id} className="hover:bg-accent/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                            tx.type === 'encaissement' ? 'bg-emerald-100' : 'bg-blue-100'
+                          }`}>
+                            {tx.type === 'encaissement' 
+                              ? <ArrowDownLeft className="h-5 w-5 text-emerald-600" />
+                              : <ArrowUpRight className="h-5 w-5 text-blue-600" />
+                            }
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">
+                              {tx.sender || tx.recipient}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{tx.reference}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${method.color}`}>
+                          {method.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`text-sm font-semibold ${
+                          tx.type === 'encaissement' ? 'text-emerald-600' : 'text-foreground'
+                        }`}>
+                          {tx.type === 'encaissement' ? '+' : '-'}{formatCurrency(tx.amount)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${status.color}`}>
+                          <StatusIcon className="h-3.5 w-3.5" />
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-muted-foreground">{formatDate(tx.createdAt)}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button className="p-2 hover:bg-accent rounded-lg transition-colors">
+                          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
+          </div>
+          
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border/40">
+            <p className="text-sm text-muted-foreground">
+              Affichage de {filteredTransactions.length} transactions
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled>Précédent</Button>
+              <Button variant="outline" size="sm">Suivant</Button>
+            </div>
           </div>
         </CardContent>
       </Card>

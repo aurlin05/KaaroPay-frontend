@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { Modal } from '@/components/ui/Modal'
 import { 
   Send, 
   Wallet, 
@@ -11,7 +12,10 @@ import {
   ArrowRight,
   Zap,
   Shield,
-  Clock
+  Clock,
+  Plus,
+  Trash2,
+  Upload
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 
@@ -34,6 +38,26 @@ export function Paiements() {
   const [recipient, setRecipient] = useState('')
   const [description, setDescription] = useState('')
   const [step, setStep] = useState(1)
+  
+  // Quick action modals
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false)
+  const [showRecurringModal, setShowRecurringModal] = useState(false)
+  const [showBulkModal, setShowBulkModal] = useState(false)
+  
+  // Invoice payment state
+  const [invoiceRef, setInvoiceRef] = useState('')
+  const [invoiceAmount, setInvoiceAmount] = useState('')
+  
+  // Recurring payment state
+  const [recurringRecipient, setRecurringRecipient] = useState('')
+  const [recurringAmount, setRecurringAmount] = useState('')
+  const [recurringFrequency, setRecurringFrequency] = useState('monthly')
+  const [recurringStartDate, setRecurringStartDate] = useState('')
+  
+  // Bulk payment state
+  const [bulkPayments, setBulkPayments] = useState<{recipient: string; amount: string}[]>([
+    { recipient: '', amount: '' }
+  ])
 
   const selectedAccount = paymentMethods.find(m => m.id === selectedMethod)
 
@@ -51,6 +75,46 @@ export function Paiements() {
       setDescription('')
     }
   }
+
+  const handleInvoicePayment = () => {
+    console.log('Invoice payment:', { invoiceRef, invoiceAmount })
+    setShowInvoiceModal(false)
+    setInvoiceRef('')
+    setInvoiceAmount('')
+    // Show success toast or redirect
+  }
+
+  const handleRecurringPayment = () => {
+    console.log('Recurring payment:', { recurringRecipient, recurringAmount, recurringFrequency, recurringStartDate })
+    setShowRecurringModal(false)
+    setRecurringRecipient('')
+    setRecurringAmount('')
+    setRecurringFrequency('monthly')
+    setRecurringStartDate('')
+  }
+
+  const handleBulkPayment = () => {
+    const validPayments = bulkPayments.filter(p => p.recipient && p.amount)
+    console.log('Bulk payments:', validPayments)
+    setShowBulkModal(false)
+    setBulkPayments([{ recipient: '', amount: '' }])
+  }
+
+  const addBulkPaymentRow = () => {
+    setBulkPayments([...bulkPayments, { recipient: '', amount: '' }])
+  }
+
+  const removeBulkPaymentRow = (index: number) => {
+    setBulkPayments(bulkPayments.filter((_, i) => i !== index))
+  }
+
+  const updateBulkPayment = (index: number, field: 'recipient' | 'amount', value: string) => {
+    const updated = [...bulkPayments]
+    updated[index][field] = value
+    setBulkPayments(updated)
+  }
+
+  const bulkTotal = bulkPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
 
   return (
     <div className="space-y-6">
@@ -270,22 +334,36 @@ export function Paiements() {
               <CardTitle>Actions rapides</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {[
-                { label: 'Payer une facture', icon: FileText },
-                { label: 'Paiement récurrent', icon: Clock },
-                { label: 'Paiement en masse', icon: Send },
-              ].map((action) => (
-                <button
-                  key={action.label}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent transition-colors text-left"
-                >
-                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <action.icon className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">{action.label}</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
-                </button>
-              ))}
+              <button
+                onClick={() => setShowInvoiceModal(true)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent transition-colors text-left"
+              >
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium">Payer une facture</span>
+                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
+              </button>
+              <button
+                onClick={() => setShowRecurringModal(true)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent transition-colors text-left"
+              >
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Clock className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium">Paiement récurrent</span>
+                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
+              </button>
+              <button
+                onClick={() => setShowBulkModal(true)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent transition-colors text-left"
+              >
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Send className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium">Paiement en masse</span>
+                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
+              </button>
             </CardContent>
           </Card>
 
@@ -310,6 +388,191 @@ export function Paiements() {
           </Card>
         </div>
       </div>
+
+      {/* Invoice Payment Modal */}
+      <Modal
+        open={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        title="Payer une facture"
+        description="Entrez la référence de votre facture"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Référence facture</label>
+            <Input
+              placeholder="Ex: FAC-2026-00123"
+              icon={<FileText className="h-4 w-4" />}
+              value={invoiceRef}
+              onChange={(e) => setInvoiceRef(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Montant (XOF)</label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={invoiceAmount}
+              onChange={(e) => setInvoiceAmount(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Compte source</label>
+            <select className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm">
+              {paymentMethods.map(m => (
+                <option key={m.id} value={m.id}>{m.name} - {formatCurrency(m.balance)}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" className="flex-1" onClick={() => setShowInvoiceModal(false)}>
+              Annuler
+            </Button>
+            <Button 
+              className="flex-1" 
+              onClick={handleInvoicePayment}
+              disabled={!invoiceRef || !invoiceAmount}
+            >
+              <Send className="h-4 w-4" />
+              Payer
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Recurring Payment Modal */}
+      <Modal
+        open={showRecurringModal}
+        onClose={() => setShowRecurringModal(false)}
+        title="Paiement récurrent"
+        description="Configurez un paiement automatique"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Bénéficiaire</label>
+            <Input
+              placeholder="Numéro ou compte"
+              icon={<User className="h-4 w-4" />}
+              value={recurringRecipient}
+              onChange={(e) => setRecurringRecipient(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Montant (XOF)</label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={recurringAmount}
+              onChange={(e) => setRecurringAmount(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Fréquence</label>
+            <select 
+              className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm"
+              value={recurringFrequency}
+              onChange={(e) => setRecurringFrequency(e.target.value)}
+            >
+              <option value="weekly">Hebdomadaire</option>
+              <option value="biweekly">Bi-mensuel</option>
+              <option value="monthly">Mensuel</option>
+              <option value="quarterly">Trimestriel</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Date de début</label>
+            <Input
+              type="date"
+              value={recurringStartDate}
+              onChange={(e) => setRecurringStartDate(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" className="flex-1" onClick={() => setShowRecurringModal(false)}>
+              Annuler
+            </Button>
+            <Button 
+              className="flex-1" 
+              onClick={handleRecurringPayment}
+              disabled={!recurringRecipient || !recurringAmount || !recurringStartDate}
+            >
+              <Clock className="h-4 w-4" />
+              Programmer
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Bulk Payment Modal */}
+      <Modal
+        open={showBulkModal}
+        onClose={() => setShowBulkModal(false)}
+        title="Paiement en masse"
+        description="Envoyez plusieurs paiements en une fois"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Bénéficiaires</label>
+            <Button variant="ghost" size="sm" onClick={addBulkPaymentRow}>
+              <Plus className="h-4 w-4" />
+              Ajouter
+            </Button>
+          </div>
+          
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {bulkPayments.map((payment, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <Input
+                  placeholder="Bénéficiaire"
+                  value={payment.recipient}
+                  onChange={(e) => updateBulkPayment(index, 'recipient', e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  type="number"
+                  placeholder="Montant"
+                  value={payment.amount}
+                  onChange={(e) => updateBulkPayment(index, 'amount', e.target.value)}
+                  className="w-32"
+                />
+                {bulkPayments.length > 1 && (
+                  <button
+                    onClick={() => removeBulkPaymentRow(index)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="p-3 rounded-xl bg-accent/50">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Total ({bulkPayments.filter(p => p.recipient && p.amount).length} paiements)</span>
+              <span className="font-semibold">{formatCurrency(bulkTotal)}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 p-3 rounded-xl border border-dashed border-border/60 cursor-pointer hover:bg-accent/30 transition-colors">
+            <Upload className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Ou importer un fichier CSV</span>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" className="flex-1" onClick={() => setShowBulkModal(false)}>
+              Annuler
+            </Button>
+            <Button 
+              className="flex-1" 
+              onClick={handleBulkPayment}
+              disabled={bulkPayments.filter(p => p.recipient && p.amount).length === 0}
+            >
+              <Send className="h-4 w-4" />
+              Envoyer tout
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

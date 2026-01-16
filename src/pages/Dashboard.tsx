@@ -13,6 +13,7 @@ import { formatCurrency } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { AlertsWidget } from '@/components/alerts/AlertsWidget'
 
 const stats = [
   {
@@ -191,15 +192,20 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Connected Accounts */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle>Comptes connectés</CardTitle>
-            <Link to="/comptes" className="text-sm text-primary font-medium hover:underline">
-              Gérer
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        {/* Alerts Widget */}
+        <AlertsWidget />
+      </div>
+
+      {/* Connected Accounts */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle>Comptes connectés</CardTitle>
+          <Link to="/comptes" className="text-sm text-primary font-medium hover:underline">
+            Gérer
+          </Link>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-3">
             {connectedAccounts.map((account) => (
               <div key={account.name} className="flex items-center justify-between p-3 rounded-xl bg-accent/50 hover:bg-accent transition-colors">
                 <div className="flex items-center gap-3">
@@ -214,15 +220,9 @@ export function Dashboard() {
                 <p className="text-sm font-semibold">{formatCurrency(account.balance)}</p>
               </div>
             ))}
-            <Link 
-              to="/comptes" 
-              className="block w-full py-2.5 text-sm font-medium text-primary hover:bg-primary/5 rounded-xl transition-colors text-center"
-            >
-              + Ajouter un compte
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent Transactions */}
       <Card>

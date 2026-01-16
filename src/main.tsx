@@ -4,6 +4,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { App } from './App'
 import './index.css'
 
+// Initialize i18n
+import './lib/i18n'
+
+// Initialize monitoring
+import { initMonitoring } from './lib/monitoring'
+
+initMonitoring({
+  sentryDsn: import.meta.env.VITE_SENTRY_DSN,
+  analyticsId: import.meta.env.VITE_ANALYTICS_ID,
+  enablePerformance: true,
+})
+
 // Initialize theme from localStorage
 const savedTheme = localStorage.getItem('kaaro-theme')
 if (savedTheme) {

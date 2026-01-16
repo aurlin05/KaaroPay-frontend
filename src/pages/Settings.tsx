@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { useTranslation } from 'react-i18next'
 import { 
   User, 
   Building2, 
@@ -45,13 +47,14 @@ const plans = [
 export function Settings() {
   const { user } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
+  const { t } = useTranslation()
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Paramètres</h1>
-        <p className="text-muted-foreground">Gérez votre compte et vos préférences</p>
+        <h1 className="text-2xl font-bold text-foreground">{t('settings.title')}</h1>
+        <p className="text-muted-foreground">{t('settings.subtitle')}</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -98,8 +101,8 @@ export function Settings() {
                   <Input defaultValue="+221 77 123 45 67" icon={<Phone className="h-4 w-4" />} />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Langue</label>
-                  <Input defaultValue="Français" icon={<Globe className="h-4 w-4" />} />
+                  <label className="text-sm font-medium mb-2 block">{t('settings.language')}</label>
+                  <LanguageSelector variant="buttons" />
                 </div>
               </div>
             </CardContent>

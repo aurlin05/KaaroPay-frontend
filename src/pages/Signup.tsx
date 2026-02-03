@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { useAuthStore } from '@/stores/authStore'
 import { Mail, Lock, User, Phone, Building2, ArrowRight, Check } from 'lucide-react'
 import { Logo } from '@/components/Logo'
+import { Animated3DScene } from '@/components/ui/Animated3DScene'
 
 const benefits = [
   'Essai gratuit de 14 jours',
@@ -201,51 +202,51 @@ export function Signup() {
         </div>
       </div>
 
-      {/* Right Panel - Branding */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-emerald-500 to-teal-600 p-12 items-center justify-center relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-40 right-20 w-72 h-72 rounded-full bg-white blur-3xl" />
-          <div className="absolute bottom-40 left-20 w-96 h-96 rounded-full bg-white blur-3xl" />
+      {/* Right Panel - 3D Motion Design */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 items-center justify-center relative overflow-hidden">
+        {/* Animated background gradients */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-violet-400/20 via-transparent to-fuchsia-400/20 animate-gradient-shift" />
+          <div className="absolute top-40 right-20 w-96 h-96 rounded-full bg-white/10 blur-3xl animate-blob" />
+          <div className="absolute bottom-40 left-20 w-80 h-80 rounded-full bg-purple-300/10 blur-3xl animate-blob animation-delay-2000" />
+          <div className="absolute top-1/3 left-1/3 w-64 h-64 rounded-full bg-fuchsia-300/10 blur-3xl animate-blob animation-delay-4000" />
         </div>
 
-        <div className="relative z-10 max-w-lg text-white">
-          <h2 className="text-4xl font-bold mb-6">
+        {/* 3D Scene */}
+        <div className="relative z-10 w-full h-full">
+          <Animated3DScene />
+        </div>
+
+        {/* Benefits overlay */}
+        <div className="absolute bottom-12 left-12 right-12 z-20">
+          <h2 className="text-2xl font-bold text-white mb-4">
             Rejoignez des centaines d'entreprises
           </h2>
-          <p className="text-lg text-white/80 mb-10">
-            KaaroPay simplifie la gestion financière des PME en Afrique de l'Ouest 
-            grâce à l'interopérabilité PI-SPI.
-          </p>
-
-          <div className="space-y-3">
+          <div className="flex flex-wrap gap-3">
             {benefits.map((benefit) => (
-              <div key={benefit} className="flex items-center gap-3">
-                <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center">
-                  <Check className="h-4 w-4 text-white" />
-                </div>
-                <span className="text-white/90">{benefit}</span>
+              <div key={benefit} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm">
+                <Check className="h-4 w-4 text-white" />
+                <span className="text-white/90 text-sm">{benefit}</span>
               </div>
             ))}
           </div>
-
-          {/* Testimonial */}
-          <div className="mt-12 p-6 rounded-2xl bg-white/10 backdrop-blur-sm">
-            <p className="text-white/90 italic mb-4">
-              "KaaroPay nous a permis de réduire notre temps de réconciliation de 80%. 
-              Un outil indispensable pour notre croissance."
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center font-bold">
-                FD
-              </div>
-              <div>
-                <p className="font-semibold">Fatou Diallo</p>
-                <p className="text-sm text-white/70">DG, TechCorp Sénégal</p>
-              </div>
-            </div>
-          </div>
         </div>
+
+        <style>{`
+          @keyframes gradient-shift {
+            0%, 100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.8; transform: scale(1.1) rotate(5deg); }
+          }
+          @keyframes blob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+          }
+          .animate-gradient-shift { animation: gradient-shift 15s ease-in-out infinite; }
+          .animate-blob { animation: blob 10s ease-in-out infinite; }
+          .animation-delay-2000 { animation-delay: 2s; }
+          .animation-delay-4000 { animation-delay: 4s; }
+        `}</style>
       </div>
     </div>
   )

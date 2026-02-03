@@ -3,14 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAuthStore } from '@/stores/authStore'
-import { Mail, Lock, ArrowRight, Zap, Shield, Globe } from 'lucide-react'
+import { Mail, Lock, ArrowRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
-
-const features = [
-  { icon: Zap, title: 'Paiements instantanés', desc: 'Via le réseau PI-SPI de la BCEAO' },
-  { icon: Shield, title: '100% Sécurisé', desc: 'Conforme aux normes bancaires' },
-  { icon: Globe, title: 'Multi-canaux', desc: 'Wave, Orange Money, MoMo, Banques' },
-]
+import { Animated3DScene } from '@/components/ui/Animated3DScene'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -97,37 +92,46 @@ export function Login() {
         </div>
       </div>
 
-      {/* Right Panel - Branding */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-emerald-500 to-teal-600 p-12 items-center justify-center relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 rounded-full bg-white blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 rounded-full bg-white blur-3xl" />
+      {/* Right Panel - 3D Motion Design */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 items-center justify-center relative overflow-hidden">
+        {/* Animated background gradients */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-emerald-400/20 via-transparent to-cyan-400/20 animate-gradient-shift" />
+          <div className="absolute top-20 left-20 w-96 h-96 rounded-full bg-white/10 blur-3xl animate-blob" />
+          <div className="absolute bottom-20 right-20 w-80 h-80 rounded-full bg-cyan-300/10 blur-3xl animate-blob animation-delay-2000" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-teal-300/10 blur-3xl animate-blob animation-delay-4000" />
         </div>
 
-        <div className="relative z-10 max-w-lg text-white">
-          <h2 className="text-4xl font-bold mb-6">
-            L'orchestrateur de paiements pour l'Afrique de l'Ouest
+        {/* 3D Scene */}
+        <div className="relative z-10 w-full h-full">
+          <Animated3DScene />
+        </div>
+
+        {/* Bottom text overlay */}
+        <div className="absolute bottom-12 left-12 right-12 z-20">
+          <h2 className="text-3xl font-bold text-white mb-3">
+            L'orchestrateur de paiements
           </h2>
-          <p className="text-lg text-white/80 mb-10">
-            Encaissez, payez et suivez tous vos flux financiers depuis une seule interface, 
-            quel que soit le canal utilisé.
+          <p className="text-white/80 text-lg">
+            Encaissez, payez et suivez tous vos flux financiers depuis une seule interface.
           </p>
-
-          <div className="space-y-4">
-            {features.map((feature) => (
-              <div key={feature.title} className="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-sm">
-                <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
-                  <feature.icon className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold">{feature.title}</p>
-                  <p className="text-sm text-white/70">{feature.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
+
+        <style>{`
+          @keyframes gradient-shift {
+            0%, 100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.8; transform: scale(1.1) rotate(5deg); }
+          }
+          @keyframes blob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+          }
+          .animate-gradient-shift { animation: gradient-shift 15s ease-in-out infinite; }
+          .animate-blob { animation: blob 10s ease-in-out infinite; }
+          .animation-delay-2000 { animation-delay: 2s; }
+          .animation-delay-4000 { animation-delay: 4s; }
+        `}</style>
       </div>
     </div>
   )

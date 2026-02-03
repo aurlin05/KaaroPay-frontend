@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { Confetti } from '@/components/ui/Confetti'
+import { useToastStore } from '@/stores/toastStore'
 import { 
   Send, 
-  Wallet, 
   User, 
   FileText, 
   CheckCircle2, 
@@ -20,24 +21,43 @@ import {
 import { formatCurrency } from '@/lib/utils'
 
 const paymentMethods = [
-  { id: 'wave', name: 'Wave', color: 'bg-wave', balance: 2450000 },
-  { id: 'orange', name: 'Orange Money', color: 'bg-orange', balance: 1230000 },
-  { id: 'momo', name: 'MoMo', color: 'bg-momo', balance: 890000 },
-  { id: 'bank', name: 'Virement Bancaire', color: 'bg-emerald-500', balance: 5670000 },
+  { id: 'wave', name: 'Wave', color: 'bg-blue-500', balance: 2450000, logo: '🌊', piSpi: false },
+  { id: 'orange', name: 'Orange Money', color: 'bg-orange-500', balance: 1230000, logo: '🟠', piSpi: true },
+  { id: 'free', name: 'Free Money', color: 'bg-red-500', balance: 890000, logo: '🔴', piSpi: true },
+  { id: 'emoney', name: 'e-Money', color: 'bg-purple-500', balance: 1560000, logo: '💜', piSpi: true },
+  { id: 'wizall', name: 'Wizall Money', color: 'bg-green-500', balance: 780000, logo: '💚', piSpi: true },
+  { id: 'yup', name: 'YUP', color: 'bg-yellow-500', balance: 340000, logo: '💛', piSpi: true },
+  { id: 'cbao', name: 'CBAO', color: 'bg-teal-600', balance: 5670000, logo: '🏦', piSpi: true },
+  { id: 'boa', name: 'BOA Sénégal', color: 'bg-red-600', balance: 3240000, logo: '🏦', piSpi: true },
+  { id: 'sgbs', name: 'SGBS', color: 'bg-red-700', balance: 4120000, logo: '🏦', piSpi: true },
+  { id: 'bicis', name: 'BICIS', color: 'bg-blue-700', balance: 2890000, logo: '🏦', piSpi: true },
+  { id: 'ecobank', name: 'Ecobank', color: 'bg-blue-600', balance: 6450000, logo: '🏦', piSpi: true },
+  { id: 'ubs', name: 'UBA Sénégal', color: 'bg-red-800', balance: 1980000, logo: '🏦', piSpi: true },
 ]
 
-const recentRecipients = [
-  { id: '1', name: 'Fournisseur ABC', account: '77 123 45 67', method: 'Wave' },
-  { id: '2', name: 'Prestataire XYZ', account: '78 234 56 78', method: 'Orange Money' },
-  { id: '3', name: 'Employé Moussa', account: 'SN12345678', method: 'Banque' },
+const recentRecipients: Array<{
+  id: string
+  name: string
+  account: string
+  method: string
+  type: 'phone' | 'alias' | 'iban'
+}> = [
+  { id: '1', name: 'Fournisseur ABC', account: '77 123 45 67', method: 'Wave', type: 'phone' },
+  { id: '2', name: 'Prestataire XYZ', account: 'presta@xyz.sn', method: 'Orange Money', type: 'alias' },
+  { id: '3', name: 'Employé Moussa', account: 'moussa.diop@email.com', method: 'Free Money', type: 'alias' },
+  { id: '4', name: 'Partenaire Diop', account: 'SN12345678901234', method: 'CBAO', type: 'iban' },
 ]
 
 export function Paiements() {
   const [selectedMethod, setSelectedMethod] = useState('')
   const [amount, setAmount] = useState('')
   const [recipient, setRecipient] = useState('')
+  const [recipientType, setRecipientType] = useState<'phone' | 'alias' | 'iban'>('phone')
   const [description, setDescription] = useState('')
   const [step, setStep] = useState(1)
+  const [showConfetti, setShowConfetti] = useState(false)
+  
+  const { success, error } = useToastStore()
   
   // Quick action modals
   const [showInvoiceModal, setShowInvoiceModal] = useState(false)
@@ -68,25 +88,34 @@ export function Paiements() {
     } else {
       // Process payment
       console.log({ selectedMethod, amount, recipient, description })
-      setStep(1)
-      setSelectedMethod('')
-      setAmount('')
-      setRecipient('')
-      setDescription('')
+      
+      // Show success feedback
+      setShowConfetti(true)
+      success('Paiement effectué !', `${formatCurrency(Number(amount))} envoyé avec succès`)
+      
+      // Reset form
+      setTimeout(() => {
+        setStep(1)
+        setSelectedMethod('')
+        setAmount('')
+        setRecipient('')
+        setDescription('')
+      }, 2000)
     }
   }
 
   const handleInvoicePayment = () => {
     console.log('Invoice payment:', { invoiceRef, invoiceAmount })
     setShowInvoiceModal(false)
+    success('Facture payée !', `Référence: ${invoiceRef}`)
     setInvoiceRef('')
     setInvoiceAmount('')
-    // Show success toast or redirect
   }
 
   const handleRecurringPayment = () => {
     console.log('Recurring payment:', { recurringRecipient, recurringAmount, recurringFrequency, recurringStartDate })
     setShowRecurringModal(false)
+    success('Paiement récurrent programmé !', `${formatCurrency(Number(recurringAmount))} - ${recurringFrequency}`)
     setRecurringRecipient('')
     setRecurringAmount('')
     setRecurringFrequency('monthly')
@@ -97,6 +126,7 @@ export function Paiements() {
     const validPayments = bulkPayments.filter(p => p.recipient && p.amount)
     console.log('Bulk payments:', validPayments)
     setShowBulkModal(false)
+    success('Paiements en masse envoyés !', `${validPayments.length} paiement(s) traité(s)`)
     setBulkPayments([{ recipient: '', amount: '' }])
   }
 
@@ -118,22 +148,24 @@ export function Paiements() {
 
   return (
     <div className="space-y-6">
+      <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
+      
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Paiements</h1>
-        <p className="text-muted-foreground">Effectuez des paiements instantanés via le PI-SPI</p>
+        <h1 className="text-2xl font-bold text-foreground">Paiements PI-SPI</h1>
+        <p className="text-muted-foreground">Effectuez des paiements instantanés interopérables</p>
       </div>
 
       {/* Features Banner */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { icon: Zap, title: 'Instantané', desc: 'Paiements en temps réel' },
+          { icon: Zap, title: 'Interopérable', desc: 'Tous opérateurs & banques' },
           { icon: Shield, title: 'Sécurisé', desc: 'Conforme BCEAO' },
-          { icon: Clock, title: '24/7', desc: 'Disponible à tout moment' },
+          { icon: Clock, title: 'Instantané', desc: 'Transfert en temps réel' },
         ].map((feature) => (
-          <div key={feature.title} className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100">
-            <div className="h-10 w-10 rounded-xl bg-white shadow-soft flex items-center justify-center">
-              <feature.icon className="h-5 w-5 text-emerald-600" />
+          <div key={feature.title} className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 dark:from-emerald-500/20 dark:to-teal-500/20 dark:border-emerald-500/30">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 shadow-soft flex items-center justify-center">
+              <feature.icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">{feature.title}</p>
@@ -175,46 +207,143 @@ export function Paiements() {
               {step === 1 && (
                 <div className="space-y-4">
                   <label className="text-sm font-medium">Sélectionnez le compte source</label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {paymentMethods.map((method) => (
-                      <button
-                        key={method.id}
-                        type="button"
-                        onClick={() => setSelectedMethod(method.id)}
-                        className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
-                          selectedMethod === method.id
-                            ? 'border-primary bg-primary/5 shadow-soft'
-                            : 'border-border/60 hover:border-primary/50'
-                        }`}
-                      >
-                        <div className={`h-10 w-10 rounded-xl ${method.color} flex items-center justify-center`}>
-                          <Wallet className="h-5 w-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{method.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Solde: {formatCurrency(method.balance)}
-                          </p>
-                        </div>
-                        {selectedMethod === method.id && (
-                          <CheckCircle2 className="h-5 w-5 text-primary" />
-                        )}
-                      </button>
-                    ))}
+                  
+                  {/* Mobile Money Section */}
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Mobile Money</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {paymentMethods.filter(m => ['wave', 'orange', 'free', 'emoney', 'wizall', 'yup'].includes(m.id)).map((method) => (
+                        <button
+                          key={method.id}
+                          type="button"
+                          onClick={() => setSelectedMethod(method.id)}
+                          className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                            selectedMethod === method.id
+                              ? 'border-primary bg-primary/5 shadow-soft'
+                              : 'border-border/60 hover:border-primary/50'
+                          }`}
+                        >
+                          <div className={`h-10 w-10 rounded-xl ${method.color} flex items-center justify-center text-lg`}>
+                            {method.logo}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {method.name}
+                              {!method.piSpi && <span className="text-[10px] ml-1 text-orange-500">(hors PI-SPI)</span>}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatCurrency(method.balance)}
+                            </p>
+                          </div>
+                          {selectedMethod === method.id && (
+                            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Banks Section */}
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Banques</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {paymentMethods.filter(m => ['cbao', 'boa', 'sgbs', 'bicis', 'ecobank', 'ubs'].includes(m.id)).map((method) => (
+                        <button
+                          key={method.id}
+                          type="button"
+                          onClick={() => setSelectedMethod(method.id)}
+                          className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                            selectedMethod === method.id
+                              ? 'border-primary bg-primary/5 shadow-soft'
+                              : 'border-border/60 hover:border-primary/50'
+                          }`}
+                        >
+                          <div className={`h-10 w-10 rounded-xl ${method.color} flex items-center justify-center text-lg`}>
+                            {method.logo}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {method.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatCurrency(method.balance)}
+                            </p>
+                          </div>
+                          {selectedMethod === method.id && (
+                            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
 
               {step === 2 && (
                 <div className="space-y-4">
+                  {/* Recipient Type Selector */}
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Bénéficiaire</label>
+                    <label className="text-sm font-medium mb-2 block">Type de destinataire</label>
+                    <div className="grid grid-cols-3 gap-2 p-1 bg-accent/50 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setRecipientType('phone')}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          recipientType === 'phone'
+                            ? 'bg-background shadow-sm text-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        📱 Téléphone
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRecipientType('alias')}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          recipientType === 'alias'
+                            ? 'bg-background shadow-sm text-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        ✉️ Alias
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRecipientType('iban')}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          recipientType === 'iban'
+                            ? 'bg-background shadow-sm text-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        🏦 IBAN
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      {recipientType === 'phone' && 'Numéro de téléphone'}
+                      {recipientType === 'alias' && 'Alias (Email ou identifiant)'}
+                      {recipientType === 'iban' && 'IBAN'}
+                    </label>
                     <Input
-                      placeholder="Numéro de téléphone ou compte"
+                      placeholder={
+                        recipientType === 'phone' 
+                          ? '77 123 45 67' 
+                          : recipientType === 'alias'
+                          ? 'email@example.com ou @identifiant'
+                          : 'SN12 3456 7890 1234 5678 9012'
+                      }
                       icon={<User className="h-4 w-4" />}
                       value={recipient}
                       onChange={(e) => setRecipient(e.target.value)}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {recipientType === 'phone' && 'Numéros commençant par 77, 78, 76, 70, 75'}
+                      {recipientType === 'alias' && 'Alias PI-SPI: identifiant personnalisé'}
+                      {recipientType === 'iban' && 'Compte bancaire au format IBAN sénégalais'}
+                    </p>
                   </div>
 
                   {recentRecipients.length > 0 && (
@@ -225,13 +354,21 @@ export function Paiements() {
                           <button
                             key={r.id}
                             type="button"
-                            onClick={() => setRecipient(r.account)}
+                            onClick={() => {
+                              setRecipient(r.account)
+                              setRecipientType(r.type)
+                            }}
                             className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent hover:bg-accent/80 transition-colors whitespace-nowrap"
                           >
-                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                              <User className="h-3 w-3 text-primary" />
+                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs">
+                              {r.type === 'phone' && '📱'}
+                              {r.type === 'alias' && '✉️'}
+                              {r.type === 'iban' && '🏦'}
                             </div>
-                            <span className="text-sm">{r.name}</span>
+                            <div className="text-left">
+                              <p className="text-xs font-medium">{r.name}</p>
+                              <p className="text-[10px] text-muted-foreground">{r.method}</p>
+                            </div>
                           </button>
                         ))}
                       </div>
@@ -263,12 +400,35 @@ export function Paiements() {
                       onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
+
+                  {/* PI-SPI Info Banner */}
+                  {selectedAccount?.piSpi && recipientType !== 'phone' && (
+                    <div className="flex items-start gap-2 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                      <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Transfert PI-SPI par alias</span>
+                        <br />
+                        Paiement interopérable instantané vers {recipientType === 'alias' ? "l'alias" : "l'IBAN"} du bénéficiaire
+                      </div>
+                    </div>
+                  )}
+
+                  {!selectedAccount?.piSpi && (
+                    <div className="flex items-start gap-2 p-3 rounded-xl bg-orange-500/5 border border-orange-500/20">
+                      <Zap className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Wave (hors PI-SPI)</span>
+                        <br />
+                        Transfert direct Wave uniquement vers numéros Wave
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {step === 3 && (
                 <div className="space-y-6">
-                  <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
+                  <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 dark:from-emerald-500/20 dark:to-teal-500/20 dark:border-emerald-500/30">
                     <p className="text-sm text-muted-foreground mb-1">Montant à envoyer</p>
                     <p className="text-3xl font-bold text-foreground">{formatCurrency(Number(amount))}</p>
                   </div>
@@ -276,20 +436,20 @@ export function Paiements() {
                   <div className="space-y-3">
                     <div className="flex justify-between py-3 border-b border-border/40">
                       <span className="text-sm text-muted-foreground">De</span>
-                      <span className="text-sm font-medium">{selectedAccount?.name}</span>
+                      <span className="text-sm font-medium text-foreground">{selectedAccount?.name}</span>
                     </div>
                     <div className="flex justify-between py-3 border-b border-border/40">
                       <span className="text-sm text-muted-foreground">Vers</span>
-                      <span className="text-sm font-medium">{recipient}</span>
+                      <span className="text-sm font-medium text-foreground">{recipient}</span>
                     </div>
                     <div className="flex justify-between py-3 border-b border-border/40">
                       <span className="text-sm text-muted-foreground">Frais</span>
-                      <span className="text-sm font-medium text-emerald-600">Gratuit</span>
+                      <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Gratuit</span>
                     </div>
                     {description && (
                       <div className="flex justify-between py-3">
                         <span className="text-sm text-muted-foreground">Motif</span>
-                        <span className="text-sm font-medium">{description}</span>
+                        <span className="text-sm font-medium text-foreground">{description}</span>
                       </div>
                     )}
                   </div>
@@ -374,7 +534,7 @@ export function Paiements() {
             <CardContent className="space-y-4">
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Utilisé</span>
+                  <span className="text-muted-foreground">Utilisé aujourd'hui</span>
                   <span className="font-medium">2.5M / 10M XOF</span>
                 </div>
                 <div className="h-2 rounded-full bg-accent overflow-hidden">
@@ -384,6 +544,11 @@ export function Paiements() {
               <p className="text-xs text-muted-foreground">
                 Limite restante: {formatCurrency(7500000)}
               </p>
+              <div className="pt-2 border-t border-border/40">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">PI-SPI:</span> Limite de 10M XOF/jour pour les transferts interopérables
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -537,7 +702,7 @@ export function Paiements() {
                 {bulkPayments.length > 1 && (
                   <button
                     onClick={() => removeBulkPaymentRow(index)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/20 rounded-lg transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -546,10 +711,10 @@ export function Paiements() {
             ))}
           </div>
 
-          <div className="p-3 rounded-xl bg-accent/50">
+          <div className="p-3 rounded-xl bg-accent/50 border border-border/40">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total ({bulkPayments.filter(p => p.recipient && p.amount).length} paiements)</span>
-              <span className="font-semibold">{formatCurrency(bulkTotal)}</span>
+              <span className="font-semibold text-foreground">{formatCurrency(bulkTotal)}</span>
             </div>
           </div>
 

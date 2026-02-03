@@ -5,12 +5,15 @@ import { Transactions } from '@/pages/Transactions'
 import { Paiements } from '@/pages/Paiements'
 import { Comptes } from '@/pages/Comptes'
 import { Rapports } from '@/pages/Rapports'
+import { Analytics } from '@/pages/Analytics'
 import { Settings } from '@/pages/Settings'
 import { Login } from '@/pages/Login'
 import { Signup } from '@/pages/Signup'
 import { Landing } from '@/pages/Landing'
 import { useAuthStore } from '@/stores/authStore'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
+import { ToastContainer } from '@/components/ui/ToastContainer'
+import { OnboardingModal } from '@/components/onboarding/OnboardingModal'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -93,6 +96,16 @@ export function App() {
           <Route index element={<Rapports />} />
         </Route>
         <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Analytics />} />
+        </Route>
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
@@ -104,6 +117,8 @@ export function App() {
         </Route>
       </Routes>
       <PWAInstallPrompt />
+      <ToastContainer />
+      <OnboardingModal />
     </BrowserRouter>
   )
 }

@@ -9,7 +9,8 @@ import {
   HelpCircle,
   LogOut,
   Moon,
-  Sun
+  Sun,
+  BarChart3
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
@@ -25,6 +26,7 @@ const mainNav = [
 ]
 
 const secondaryNav = [
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Rapports', href: '/rapports', icon: FileText },
   { name: 'Paramètres', href: '/settings', icon: Settings },
 ]
